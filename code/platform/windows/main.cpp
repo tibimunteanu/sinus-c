@@ -10,7 +10,7 @@
 #include "../../shared/math.h"
 #include "../../game/platform.h"
 #include "workqueue.h"
-#include "fileio.cpp"
+#include "fileio.h"
 #include "monitor.h"
 #include "input.h"
 
@@ -30,6 +30,20 @@ struct win32_state
     display_monitor *currentMonitor;
     WINDOWPLACEMENT windowPosition;
     display_settings displaySettings;
+
+    char exeFolderPath[MAX_PATH];
+    char exeFileName[MAX_PATH];
+    char exeFullPath[MAX_PATH];
+    char gameDllFullPath[MAX_PATH];
+    char tempGameDllFullPath[MAX_PATH];
+};
+
+struct win32_game_dll
+{
+    b32 isValid;
+    HMODULE gameDll;
+    FILETIME gameDllLastModified;
+    game_update_and_render *UpdateAndRender;
 };
 
 #include "monitor.cpp"
@@ -39,10 +53,56 @@ struct win32_state
 global b32 running;
 win32_state win32State = {};
 
-LRESULT CALLBACK MainWindowCallback(HWND window,
-                                    UINT message,
-                                    WPARAM wParam,
-                                    LPARAM lParam)
+internal void Win32SetExeFileInfo()
+{
+    DWORD sizeofFileName = GetModuleFileNameA(0, win32State.exeFullPath, sizeof(win32State.exeFullPath));
+    char *exeFileName = win32State.exeFullPath;
+    for(char *scan = win32State.exeFullPath; *scan; scan++)
+    {
+        if(*scan == '\\')
+        {
+            exeFileName = scan + 1;
+        }
+    }
+    CopyString(win32State.exeFileName, exeFileName, StringLength(exeFileName));
+    CopyString(win32State.exeFolderPath, win32State.exeFullPath, exeFileName - win32State.exeFullPath);
+    CatStrings(win32State.gameDllFullPath, win32State.exeFolderPath, "game.dll");
+    CatStrings(win32State.tempGameDllFullPath, win32State.exeFolderPath, "game_temp.dll");
+}
+
+internal win32_game_dll Win32LoadGameDll()
+{
+    win32_game_dll result = {};
+    result.gameDllLastModified = Win32GetFileLastModified(win32State.gameDllFullPath);
+    CopyFile(win32State.gameDllFullPath, win32State.tempGameDllFullPath, FALSE);
+    result.gameDll = LoadLibraryA(win32State.tempGameDllFullPath);
+    if(result.gameDll)
+    {
+        result.UpdateAndRender = (game_update_and_render *)GetProcAddress(result.gameDll, "GameUpdateAndRender");
+        result.isValid = result.UpdateAndRender != 0;
+    }
+    if(!result.isValid)
+    {
+        result.UpdateAndRender = 0;
+    }
+    return result;
+}
+
+internal void Win32UnloadGameDll(win32_game_dll *game)
+{
+    if(game->gameDll)
+    {
+        FreeLibrary(game->gameDll);
+        game->gameDll = 0;
+    }
+    game->isValid = false;
+    game->UpdateAndRender = 0;
+}
+
+LRESULT CALLBACK Win32MainWindowCallback(HWND window,
+                                         UINT message,
+                                         WPARAM wParam,
+                                         LPARAM lParam)
 {
     LRESULT result = 0;
     switch(message)
@@ -116,10 +176,12 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                      LPSTR lpCmdLine,
                      int nCmdShow)
 {
+    Win32SetExeFileInfo();
+
     WNDCLASSEX windowClass = {};
     windowClass.cbSize = sizeof(windowClass);
     windowClass.style = CS_HREDRAW|CS_VREDRAW|CS_OWNDC;
-    windowClass.lpfnWndProc = MainWindowCallback;
+    windowClass.lpfnWndProc = Win32MainWindowCallback;
     windowClass.hInstance = hInstance;
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
     windowClass.lpszClassName = "SinusClass";
@@ -191,9 +253,18 @@ int CALLBACK WinMain(HINSTANCE hInstance,
             win32State.windowPosition = {sizeof(WINDOWPLACEMENT)};
             GetWindowPlacement(window, &win32State.windowPosition);
 
+            win32_game_dll game = Win32LoadGameDll();
+
             running = true;
             while(running)
             {
+                FILETIME newDllWriteTime = Win32GetFileLastModified(win32State.gameDllFullPath);
+                if(CompareFileTime(&newDllWriteTime, &game.gameDllLastModified) != 0)
+                {
+                    Win32UnloadGameDll(&game);
+                    game = Win32LoadGameDll();
+                }
+
                 MSG message;
                 while(PeekMessage(&message, 0, 0, 0, PM_REMOVE))
                 {
@@ -250,6 +321,11 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                             DispatchMessageA(&message);
                         } break;
                     }
+                }
+
+                if(game.isValid)
+                {
+                    game.UpdateAndRender(&memoryStore);
                 }
             }
 

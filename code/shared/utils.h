@@ -1,3 +1,6 @@
+#ifndef UTILS_H
+#define UTILS_H 
+
 inline u32
 SafeTruncateToU32(u64 value)
 {
@@ -12,21 +15,6 @@ SafeTruncateToU16(u32 value)
     Assert(value <= 0xFFFF);
     u16 result = (u16)value;
     return result;
-}
-
-inline void CatStrings(memory_index sourceACount, char *sourceA,
-                       memory_index sourceBCount, char *sourceB,
-                       memory_index destCount, char *dest)
-{
-    for(i32 i = 0; i < sourceACount; i++)
-    {
-        *dest++ = *sourceA++;
-    }
-    for(i32 i = 0; i < sourceBCount; i++)
-    {
-        *dest++ = *sourceB++;
-    }
-    *dest++ = 0;
 }
 
 inline i32 CompareStrings(char *a, char *b)
@@ -169,3 +157,36 @@ inline void StringMakeLowercase(char *s)
         }
     }
 }
+
+inline void CopyString(char *dest, char *source, memory_index length)
+{
+    for(i32 i = 0; i < length; i++)
+    {
+        *dest++ = *source++;
+    }
+    *dest++ = 0;
+}
+
+inline void CatStrings(char *dest,
+                       memory_index sourceACount, char *sourceA,
+                       memory_index sourceBCount, char *sourceB)
+{
+    for(i32 i = 0; i < sourceACount; i++)
+    {
+        *dest++ = *sourceA++;
+    }
+    for(i32 i = 0; i < sourceBCount; i++)
+    {
+        *dest++ = *sourceB++;
+    }
+    *dest++ = 0;
+}
+
+inline void CatStrings(char *dest, char *sourceA, char *sourceB)
+{
+    CatStrings(dest,
+               StringLength(sourceA), sourceA,
+               StringLength(sourceB), sourceB);
+}
+
+#endif /* UTILS_H */

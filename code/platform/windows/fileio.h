@@ -1,3 +1,6 @@
+#ifndef FILEIO_H
+#define FILEIO_H 
+
 struct win32_file_handle
 {
     HANDLE fileHandle;
@@ -112,3 +115,15 @@ internal void Win32ReadDataFromFile(file_handle *source, u64 offset, u64 size, v
     }
 }
 
+inline FILETIME Win32GetFileLastModified(char *fileName)
+{
+    FILETIME lastWriteTime = {};
+    WIN32_FILE_ATTRIBUTE_DATA data;
+    if(GetFileAttributesEx(fileName, GetFileExInfoStandard, &data))
+    {
+        lastWriteTime = data.ftLastWriteTime;
+    }
+    return lastWriteTime;
+}
+
+#endif /* FILEIO_H */

@@ -1,5 +1,5 @@
-#ifndef DEFINES_H
-#define DEFINES_H 
+#ifndef SHARED_H
+#define SHARED_H 
 
 #include<stdint.h>
 
@@ -31,7 +31,8 @@ typedef uintptr_t umm;
 #define Min(A, B) ((A < B) ? (A) : (B))
 #define Max(A, B) ((A > B) ? (A) : (B))
 #define InvalidCodePath Assert(!"Invalid code path")
-#define InvalidDefaultCase default: { InvalidCodePath; } break
+#define InvalidDefaultCase default: {Assert(!"Invalid default case")} break
+#define NotImplemented Assert(!"Not implemented")
 #define AsciiCode(a, b, c, d) (((u32)(a) << 0) | ((u32)(b) << 8) | ((u32)(c) << 16) | ((u32)(d) << 24))
 
 #if SINUS_DEBUG
@@ -39,10 +40,6 @@ typedef uintptr_t umm;
 #else
 #define Assert(expression)
 #endif
-
-#define InvalidCodePath Assert(!"Invalid code path")
-#define InvalidDefaultcase default: {Assert(!"Invalid default case")} break
-#define NotImplemented Assert(!"Not implemented")
 
 #if !defined(COMPILER_MSVC)
 #define COMPILER_MSVC 0
@@ -90,4 +87,4 @@ internal void DetectInstructionSets()
     AVX = ((info3 >> 28) & 1) != 0;
 }
 
-#endif /* DEFINES_H */
+#endif /* SHARED_H */

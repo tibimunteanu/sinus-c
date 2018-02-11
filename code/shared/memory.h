@@ -1,3 +1,6 @@
+#ifndef MEMORY_H
+#define MEMORY_H 
+
 #include "stdlib.h" //TODO: get rid of this
 #include "string.h" //TODO: get rid of this
 
@@ -210,3 +213,4 @@ internal void GAInit(memory_arena *arena, general_allocator *allocator, memory_i
     GAInsertBlock(allocator->sentinel, size, PushSize(arena, size));
 }
 
+#endif /* MEMORY_H */
