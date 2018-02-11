@@ -126,4 +126,15 @@ inline FILETIME Win32GetFileLastModified(char *fileName)
     return lastWriteTime;
 }
 
+inline b32 Win32FileExists(char *fileName)
+{
+    b32 result = false;
+    WIN32_FILE_ATTRIBUTE_DATA data;
+    if(GetFileAttributesEx(fileName, GetFileExInfoStandard, &data))
+    {
+        result = true;
+    }
+    return result;
+}
+
 #endif /* FILEIO_H */

@@ -36,6 +36,7 @@ struct win32_state
     char exeFullPath[MAX_PATH];
     char gameDllFullPath[MAX_PATH];
     char tempGameDllFullPath[MAX_PATH];
+    char lockTmpFullPath[MAX_PATH];
 };
 
 struct win32_game_dll
@@ -53,33 +54,37 @@ struct win32_game_dll
 global b32 running;
 win32_state win32State = {};
 
-internal void Win32SetExeFileInfo()
+internal void Win32SetFilePaths()
 {
     DWORD sizeofFileName = GetModuleFileNameA(0, win32State.exeFullPath, sizeof(win32State.exeFullPath));
     char *exeFileName = win32State.exeFullPath;
-    for(char *scan = win32State.exeFullPath; *scan; scan++)
+    for(char *c = win32State.exeFullPath; *c; c++)
     {
-        if(*scan == '\\')
+        if(*c == '\\')
         {
-            exeFileName = scan + 1;
+            exeFileName = c + 1;
         }
     }
     CopyString(win32State.exeFileName, exeFileName, StringLength(exeFileName));
     CopyString(win32State.exeFolderPath, win32State.exeFullPath, exeFileName - win32State.exeFullPath);
     CatStrings(win32State.gameDllFullPath, win32State.exeFolderPath, "game.dll");
     CatStrings(win32State.tempGameDllFullPath, win32State.exeFolderPath, "game_temp.dll");
+    CatStrings(win32State.lockTmpFullPath, win32State.exeFolderPath, "lock.tmp");
 }
 
 internal win32_game_dll Win32LoadGameDll()
 {
     win32_game_dll result = {};
-    result.gameDllLastModified = Win32GetFileLastModified(win32State.gameDllFullPath);
-    CopyFile(win32State.gameDllFullPath, win32State.tempGameDllFullPath, FALSE);
-    result.gameDll = LoadLibraryA(win32State.tempGameDllFullPath);
-    if(result.gameDll)
+    if(!Win32FileExists(win32State.lockTmpFullPath))
     {
-        result.UpdateAndRender = (game_update_and_render *)GetProcAddress(result.gameDll, "GameUpdateAndRender");
-        result.isValid = result.UpdateAndRender != 0;
+        result.gameDllLastModified = Win32GetFileLastModified(win32State.gameDllFullPath);
+        CopyFile(win32State.gameDllFullPath, win32State.tempGameDllFullPath, FALSE);
+        result.gameDll = LoadLibraryA(win32State.tempGameDllFullPath);
+        if(result.gameDll)
+        {
+            result.UpdateAndRender = (game_update_and_render *)GetProcAddress(result.gameDll, "GameUpdateAndRender");
+            result.isValid = result.UpdateAndRender != 0;
+        }
     }
     if(!result.isValid)
     {
@@ -176,7 +181,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                      LPSTR lpCmdLine,
                      int nCmdShow)
 {
-    Win32SetExeFileInfo();
+    Win32SetFilePaths();
 
     WNDCLASSEX windowClass = {};
     windowClass.cbSize = sizeof(windowClass);
@@ -259,11 +264,20 @@ int CALLBACK WinMain(HINSTANCE hInstance,
             while(running)
             {
                 FILETIME newDllWriteTime = Win32GetFileLastModified(win32State.gameDllFullPath);
-                if(CompareFileTime(&newDllWriteTime, &game.gameDllLastModified) != 0)
+                b32 reloadGameDll = CompareFileTime(&newDllWriteTime, &game.gameDllLastModified) != 0;
+                if(reloadGameDll)
                 {
+                    Win32CompleteWorkQueue(&highPriorityQueue);
+                    Win32CompleteWorkQueue(&lowPriorityQueue);
+
                     Win32UnloadGameDll(&game);
-                    game = Win32LoadGameDll();
+                    for(u32 i = 0; !game.isValid && i < 100; i++)
+                    {
+                        game = Win32LoadGameDll();
+                        Sleep(100);
+                    }
                 }
+                Assert(game.isValid);
 
                 MSG message;
                 while(PeekMessage(&message, 0, 0, 0, PM_REMOVE))
@@ -323,10 +337,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                     }
                 }
 
-                if(game.isValid)
-                {
-                    game.UpdateAndRender(&memoryStore);
-                }
+                game.UpdateAndRender(&memoryStore);
             }
 
             DIRelease();
