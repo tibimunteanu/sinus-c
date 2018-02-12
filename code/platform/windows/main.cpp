@@ -50,6 +50,7 @@ struct win32_game_dll
 #include "monitor.cpp"
 #include "opengl.cpp"
 #include "input.cpp"
+#include "renderer.h"
 
 global b32 running;
 win32_state win32State = {};
@@ -152,19 +153,11 @@ LRESULT CALLBACK Win32MainWindowCallback(HWND window,
             running = false;
         } break;
 
-        case WM_PAINT:
+        case WM_SIZE:
         {
-            PAINTSTRUCT paint;
-            HDC dc = BeginPaint(window, &paint);
             i32 width, height;
             GetClientSize(window, &width, &height);
-
-            glViewport(0, 0, width, height);
-            glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-            SwapBuffers(dc);
-            
-            EndPaint(window, &paint);
+            RendererSetViewport(0, 0, width, height);
         } break;
 
         default:
@@ -259,6 +252,10 @@ int CALLBACK WinMain(HINSTANCE hInstance,
             GetWindowPlacement(window, &win32State.windowPosition);
 
             win32_game_dll game = Win32LoadGameDll();
+            renderer renderer = {};
+            RendererInit(&renderer);
+            u32 basicShader = CreateShader(basicShaderVertexSource, basicShaderFragmentSource);
+            glUseProgram(basicShader);
 
             running = true;
             while(running)
@@ -338,6 +335,14 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                 }
 
                 game.UpdateAndRender(&memoryStore);
+
+                //test renderer
+                RendererClearColor({0.2f, 0.3f, 0.8f, 1.0f});
+                RendererBegin(&renderer);
+                RendererSubmit(&renderer, {0, 0, 0}, {0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f});
+                RendererEnd();
+                RendererFlush(&renderer);
+                SwapBuffers(dc);
             }
 
             DIRelease();

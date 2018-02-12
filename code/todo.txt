@@ -1,0 +1,22 @@
+ASSETS
+- rethink the sprite meta as content thing.. it doesn't seem natural
+- replace the lru asset eviction scheme
+- hot patching for both meta and content
+- multithreaded asset loading
+- maybe don't keep texture contents in CPU memory after sending them to the GPU
+- other asset types
+- sprite manager tool
+- import tools for all asset types
+
+MEMORY MGMT
+- use arenas in the platform layer
+- gpa better reuse block matching
+- maybe dynamically growing arenas
+
+MATH
+- matrices
+- simd
+
+RENDERER
+- renderer api
+- render to texture

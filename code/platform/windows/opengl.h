@@ -1,4 +1,5 @@
-#if !defined(OPENGL_H)
+#ifndef OPENGL_H
+#define OPENGL_H
 
 #define WGL_DRAW_TO_WINDOW_ARB                       0x2001
 #define WGL_ACCELERATION_ARB                         0x2003
@@ -27,6 +28,7 @@
 #define GL_NUM_EXTENSIONS                            0x821D
 #define GL_ARRAY_BUFFER                              0x8892
 #define GL_STATIC_DRAW                               0x88E4
+#define GL_DYNAMIC_DRAW                              0x88E8
 #define GL_FRAGMENT_SHADER                           0x8B30
 #define GL_VERTEX_SHADER                             0x8B31
 #define GL_COMPILE_STATUS                            0x8B81
@@ -40,6 +42,8 @@
 #define GL_SRGB8_ALPHA8                              0x8C43
 #define GL_MAJOR_VERSION                             0x821B
 #define GL_MINOR_VERSION                             0x821C
+#define GL_READ_ONLY                                 0x88B8
+#define GL_WRITE_ONLY                                0x88B9
 
 typedef HGLRC WINAPI wgl_create_context_attribs_arb(HDC hDC, HGLRC hShareContext, const int *attribList);
 typedef BOOL WINAPI wgl_choose_pixel_format_arb(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
@@ -69,6 +73,7 @@ typedef void APIENTRY gl_get_shader_info_log(GLuint shader, GLsizei bufSize, GLs
 typedef void APIENTRY gl_get_shader_iv(GLuint shader, GLenum pname, GLint *params);
 typedef void APIENTRY gl_link_program(GLuint program);
 typedef void APIENTRY gl_shader_source(GLuint shader, GLsizei count, const char* *string, const GLint *length);
+typedef void APIENTRY gl_validate_program (GLuint program);
 typedef void APIENTRY gl_use_program(GLuint program);
 typedef void APIENTRY gl_vertex_attrib_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid *pointer);
 typedef void APIENTRY gl_bind_attrib_location(GLuint program, GLuint index, const char *name);
@@ -79,6 +84,8 @@ typedef void APIENTRY gl_uniform_1i(GLint location, GLint v0);
 typedef void APIENTRY gl_disable_vertex_attrib_array(GLuint index);
 typedef void APIENTRY gl_uniform_3fv(GLint location, GLsizei count, const GLfloat *value);
 typedef void APIENTRY gl_uniform_4fv(GLint location, GLsizei count, const GLfloat *value);
+typedef void *APIENTRY gl_map_buffer (GLenum target, GLenum access);
+typedef GLboolean APIENTRY gl_unmap_buffer (GLenum target);
 
 global wgl_create_context_attribs_arb *wglCreateContextAttribsARB;
 global wgl_choose_pixel_format_arb *wglChoosePixelFormatARB;
@@ -108,6 +115,7 @@ global gl_get_shader_info_log *glGetShaderInfoLog;
 global gl_get_shader_iv *glGetShaderiv;
 global gl_link_program *glLinkProgram;
 global gl_shader_source *glShaderSource;
+global gl_validate_program *glValidateProgram;
 global gl_use_program *glUseProgram;
 global gl_vertex_attrib_pointer *glVertexAttribPointer;
 global gl_bind_attrib_location *glBindAttribLocation;
@@ -118,6 +126,8 @@ global gl_uniform_1i *glUniform1i;
 global gl_disable_vertex_attrib_array *glDisableVertexAttribArray;
 global gl_uniform_3fv *glUniform3fv;
 global gl_uniform_4fv *glUniform4fv;
+global gl_map_buffer *glMapBuffer;
+global gl_unmap_buffer *glUnmapBuffer;
 
 struct gl_extensions
 {
@@ -140,5 +150,4 @@ struct gl_info
     i32 minorVersion;
 };
 
-#define OPENGL_H
-#endif
+#endif /* OPENGL_H */

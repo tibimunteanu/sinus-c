@@ -1,5 +1,5 @@
-#ifndef THREAD_H
-#define THREAD_H 
+#ifndef WORKQUEUE_H
+#define WORKQUEUE_H 
 
 struct work_queue
 {
@@ -84,4 +84,4 @@ internal void Win32InitWorkQueue(work_queue *queue, u32 threadCount)
     }
 }
 
-#endif /* THREAD_H */
+#endif /* WORKQUEUE_H */

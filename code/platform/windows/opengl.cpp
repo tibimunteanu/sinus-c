@@ -135,6 +135,7 @@ internal gl_extensions LoadGLExtensions(i32 majorVersion)
     glGetShaderiv = (gl_get_shader_iv *)wglGetProcAddress("glGetShaderiv");
     glLinkProgram = (gl_link_program *)wglGetProcAddress("glLinkProgram");
     glShaderSource = (gl_shader_source *)wglGetProcAddress("glShaderSource");
+    glValidateProgram = (gl_validate_program *)wglGetProcAddress("glValidateProgram");
     glUseProgram = (gl_use_program *)wglGetProcAddress("glUseProgram");
     glVertexAttribPointer = (gl_vertex_attrib_pointer *)wglGetProcAddress("glVertexAttribPointer");
     glBindAttribLocation = (gl_bind_attrib_location *)wglGetProcAddress("glBindAttribLocation");
@@ -145,6 +146,8 @@ internal gl_extensions LoadGLExtensions(i32 majorVersion)
     glDisableVertexAttribArray = (gl_disable_vertex_attrib_array *)wglGetProcAddress("glDisableVertexAttribArray");
     glUniform3fv = (gl_uniform_3fv *)wglGetProcAddress("glUniform3fv");
     glUniform4fv = (gl_uniform_4fv *)wglGetProcAddress("glUniform4fv");
+    glMapBuffer = (gl_map_buffer *)wglGetProcAddress("glMapBuffer");
+    glUnmapBuffer = (gl_unmap_buffer *)wglGetProcAddress("glUnmapBuffer");
 
     gl_extensions glExtensions = {};
     if(majorVersion >= 3)
@@ -291,5 +294,81 @@ internal void OpenGLRelease(HGLRC openGLRC)
 {
     wglMakeCurrent(NULL, NULL);
     wglDeleteContext(openGLRC);
+}
+
+global char basicShaderVertexSource[] = 
+"#version 330 core\n"
+"layout(location = 0) in vec4 position;\n"
+"layout(location = 1) in vec4 color;\n"
+"smooth out vec4 theColor;\n"
+"void main()\n"
+"{\n"
+    "gl_Position = position;\n"
+    "theColor = color;\n"
+"};\n";
+
+global char basicShaderFragmentSource[] =
+"#version 330 core\n"
+"smooth in vec4 theColor;\n"
+"out vec4 color;\n"
+"void main()\n"
+"{\n"
+    "color = theColor;\n"
+"};\n";
+
+internal u32 CompileShader(u32 type, const char *source)
+{
+    u32 id = glCreateShader(type);
+    glShaderSource(id, 1, &source, 0);
+    glCompileShader(id);
+
+    i32 compileResult;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &compileResult);
+    if(compileResult == GL_FALSE)
+    {
+        i32 length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        char *message = (char *)alloca(length * sizeof(char));
+        glGetShaderInfoLog(id, length, &length, message);
+        OutputDebugStringA(message);
+        OutputDebugStringA("\n");
+        glDeleteShader(id);
+        id = 0;
+    }
+    return id;
+}
+
+internal u32 CreateShader(const char *vertexSource, const char *fragmentSource)
+{
+    u32 program = glCreateProgram();
+    u32 vs = CompileShader(GL_VERTEX_SHADER, vertexSource);
+    u32 fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    if(!vs || !fs)
+    {
+        program = 0;
+    }
+    else
+    {
+        glAttachShader(program, vs);
+        glAttachShader(program, fs);
+        glLinkProgram(program);
+        glValidateProgram(program);
+
+        i32 linkResult;
+        glGetProgramiv(program, GL_LINK_STATUS, &linkResult);
+        if(linkResult == GL_FALSE)
+        {
+            i32 length;
+            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+            char *message = (char *)alloca(length * sizeof(char));
+            glGetProgramInfoLog(program, length, &length, message);
+            OutputDebugStringA(message);
+            OutputDebugStringA("\n");
+            program = 0;
+        }
+    }
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    return program;
 }
 
