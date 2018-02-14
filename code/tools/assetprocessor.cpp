@@ -287,6 +287,55 @@ internal sound_content LoadWAV(char *fileName)
     return result;
 }
 
+internal shader_content LoadShader(asset_meta *assetMeta)
+{
+    shader_content result = {};
+    FILE *shaderSource = fopen(assetMeta->fileName, "r");
+    if(shaderSource)
+    {
+        result.vertexSource = (char *)malloc(Kilobytes(200));
+        result.fragmentSource = (char *)malloc(Kilobytes(200));
+        char *vertexSource = result.vertexSource;
+        char *fragmentSource = result.fragmentSource;
+        u32 type = 0;
+        char line[1024];
+        ZeroSize(sizeof(line), line);
+        while(fgets(line, sizeof(line), shaderSource))
+        {
+            const char *c = SkipTo(line, "#shader");
+            if(c)
+            {
+                if(SkipTo(c, "vertex"))
+                {
+                    type = 1;
+                }
+                else if(SkipTo(c, "fragment"))
+                {
+                    type = 2;
+                }
+            }
+            else
+            {
+                memory_index length = StringLength(line);
+                if(type == 1)
+                {
+                    CopyString(vertexSource, line, length);
+                    vertexSource += length;
+                }
+                else if(type == 2)
+                {
+                    CopyString(fragmentSource, line, length);
+                    fragmentSource += length;
+                }
+            }
+            ZeroSize(sizeof(line), line);
+        }
+        assetMeta->shader.vertexSourceLength = StringLength(result.vertexSource) + 1;
+        assetMeta->shader.fragmentSourceLength = StringLength(result.fragmentSource) + 1;
+    }
+    return result;
+}
+
 internal asset_type *GetAssetType(asset_file *assetFile, u32 typeId)
 {
     for(u32 i = 0; i < assetFile->header.assetTypeCount; i++)
@@ -330,6 +379,11 @@ internal void AddSound(asset_file *assetFile, char *fileName)
     AddAsset(assetFile, fileName, AssetType_Sound);
 }
 
+internal void AddShader(asset_file *assetFile, char *fileName)
+{
+    AddAsset(assetFile, fileName, AssetType_Shader);
+}
+
 internal void WriteAssetFile(asset_file *assetFile, char *assetFileName)
 {
     FILE *out = fopen(assetFileName, "wb");
@@ -356,22 +410,40 @@ internal void WriteAssetFile(asset_file *assetFile, char *assetFileName)
             if(assetMeta->typeId == AssetType_Texture)
             {
                 texture_content textureContent = LoadPNG(assetMeta);
+
                 assetMeta->dataOffset = dataOffset;
                 fwrite(assetMeta, sizeof(asset_meta), 1, out);
-
                 u64 currentOffset = ftell(out);
                 fseek(out, (u32)dataOffset, SEEK_SET);
+
                 fwrite(textureContent.sprites, sizeof(sprite_meta) * assetMeta->texture.spritesLength, 1, out);
                 fwrite(textureContent.content, 4 * assetMeta->texture.width * assetMeta->texture.height, 1, out);
-                dataOffset = ftell(out);
-                fseek(out, (u32)currentOffset, SEEK_SET);
-
                 free(textureContent.sprites);
                 stbi_image_free(textureContent.content);
+
+                dataOffset = ftell(out);
+                fseek(out, (u32)currentOffset, SEEK_SET);
             }
             else if(assetMeta->typeId == AssetType_Sound)
             {
                 //TODO: handle sounds
+            }
+            else if(assetMeta->typeId == AssetType_Shader)
+            {
+                shader_content shaderContent = LoadShader(assetMeta);
+
+                assetMeta->dataOffset = dataOffset;
+                fwrite(assetMeta, sizeof(asset_meta), 1, out);
+                u64 currentOffset = ftell(out);
+                fseek(out, (u32)dataOffset, SEEK_SET);
+
+                fwrite(shaderContent.vertexSource, assetMeta->shader.vertexSourceLength, 1, out);
+                fwrite(shaderContent.fragmentSource, assetMeta->shader.fragmentSourceLength, 1, out);
+                free(shaderContent.vertexSource);
+                free(shaderContent.fragmentSource);
+
+                dataOffset = ftell(out);
+                fseek(out, (u32)currentOffset, SEEK_SET);
             }
         }
         fclose(out);
@@ -394,6 +466,7 @@ int main(int argCount, char **args)
     assetFile.header = {};
     AddTexture(&assetFile, "test1.png");
     AddTexture(&assetFile, "test2.png");
+    AddShader(&assetFile, "basic.shader");
     WriteAssetFile(&assetFile, "assetFile.cma");
 
     //write second file

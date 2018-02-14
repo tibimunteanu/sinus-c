@@ -300,20 +300,29 @@ global char basicShaderVertexSource[] =
 "#version 330 core\n"
 "layout(location = 0) in vec4 position;\n"
 "layout(location = 1) in vec4 color;\n"
-"smooth out vec4 theColor;\n"
+"out data\n"
+"{\n"
+    "vec4 position;\n"
+    "vec4 color;\n"
+"} vs_out;\n"
 "void main()\n"
 "{\n"
     "gl_Position = position;\n"
-    "theColor = color;\n"
+    "vs_out.position = position;\n"
+    "vs_out.color = color;\n"
 "};\n";
 
 global char basicShaderFragmentSource[] =
 "#version 330 core\n"
-"smooth in vec4 theColor;\n"
-"out vec4 color;\n"
+"layout(location = 0) out vec4 color;\n"
+"in data\n"
+"{\n"
+    "vec4 position;\n"
+    "vec4 color;\n"
+"} fs_in;\n"
 "void main()\n"
 "{\n"
-    "color = theColor;\n"
+    "color = fs_in.color;\n"
 "};\n";
 
 internal u32 CompileShader(u32 type, const char *source)

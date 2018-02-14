@@ -53,6 +53,13 @@ internal void *AllocateAssetMemory(game_assets *assets, u32 size, u32 newAssetIn
                 asset->sound.content = 0;
             } break;
 
+            case AssetType_Shader:
+            {
+                block = GAFree(&assets->assetsAllocator, asset->shader.vertexSource);
+                asset->shader.vertexSource = 0;
+                asset->shader.fragmentSource = 0;
+            } break;
+
             InvalidDefaultCase;
         };
         result = GAAllocate(&assets->assetsAllocator, size, block);
@@ -119,6 +126,33 @@ internal void LoadSound(game_assets *assets, char *fileName)
     if(asset)
     {
         LoadSound(assets, asset->assetIndex);
+    }
+}
+
+internal void LoadShader(game_assets *assets, u32 assetIndex)
+{
+    asset_handle *asset = assets->assets + assetIndex;
+    if(asset->state == AssetState_Unloaded)
+    {
+        asset->state = AssetState_Queued;
+        u32 vertexSourceLength = asset->meta.shader.vertexSourceLength;
+        u32 fragmentSourceLength = asset->meta.shader.fragmentSourceLength;
+        char *vertexSource = (char *)AllocateAssetMemory(assets, vertexSourceLength + fragmentSourceLength, assetIndex, AssetType_Shader);
+        asset->shader.vertexSource = (char *)vertexSource;
+        asset->shader.fragmentSource = (char *)asset->shader.vertexSource + vertexSourceLength;
+        file_handle *fileHandle = &assets->files[asset->fileIndex].handle;
+        platform.ReadDataFromFile(fileHandle, asset->meta.dataOffset, vertexSourceLength, asset->shader.vertexSource);
+        platform.ReadDataFromFile(fileHandle, asset->meta.dataOffset + vertexSourceLength, fragmentSourceLength, asset->shader.fragmentSource);
+        asset->state = AssetState_Loaded;
+    }
+}
+
+internal void LoadShader(game_assets *assets, char *fileName)
+{
+    asset_handle *asset = GetAsset(assets, fileName);
+    if(asset)
+    {
+        LoadShader(assets, asset->assetIndex);
     }
 }
 
@@ -193,7 +227,7 @@ internal game_assets *AllocateGameAssets(memory_arena *arena, u32 size)
                         {
                             Assert(assetCount < assets->assetCount);
                             asset_handle *asset = assets->assets + assetCount++;
-                            asset->assetIndex = destAssetType->assetCount++;
+                            asset->assetIndex = destAssetType->firstAssetIndex + destAssetType->assetCount++;
                             asset->fileIndex = fileIndex;
                             asset->state = AssetState_Unloaded;
                             asset->meta = *(file->assetArray + sourceAssetType->firstAssetIndex + assetIndex);

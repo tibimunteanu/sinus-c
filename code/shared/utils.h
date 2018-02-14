@@ -189,4 +189,9 @@ inline void CatStrings(char *dest, char *sourceA, char *sourceB)
                StringLength(sourceB), sourceB);
 }
 
+inline const char *SkipTo(const char *source, const char *target)
+{
+    return strstr(source, target);
+}
+
 #endif /* UTILS_H */

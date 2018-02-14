@@ -7,6 +7,7 @@ enum asset_types
 {
     AssetType_Texture,
     AssetType_Sound,
+    AssetType_Shader,
 
     AssetType_Count
 };
@@ -22,7 +23,7 @@ enum filter_modes
 {
     FilterModes_Nearest,
     FilterModes_Billinear,
-    FilterModes_Trillinear
+    FilterModes_Trilinear
 };
 
 enum wrap_modes
@@ -64,9 +65,9 @@ struct texture_meta
 
 struct sprite_meta
 {
-#define MAX_SPRITE_NAME_LENGTH 64
+#define MAX_ASSET_NAME_LENGTH 64
     u32 index;
-    char name[MAX_SPRITE_NAME_LENGTH];
+    char name[MAX_ASSET_NAME_LENGTH];
     recti rect;
     v2 pivot;
     v4 border;
@@ -76,6 +77,12 @@ struct sound_meta
 {
     u32 sampleCount;
     u32 channelCount;
+};
+
+struct shader_meta
+{
+    u32 vertexSourceLength;
+    u32 fragmentSourceLength;
 };
 
 struct asset_meta
@@ -88,6 +95,7 @@ struct asset_meta
     {
         texture_meta texture;
         sound_meta sound;
+        shader_meta shader;
     };
 };
 
@@ -112,6 +120,12 @@ struct sound_content
     u8 *content;
 };
 
+struct shader_content
+{
+    char *vertexSource;
+    char *fragmentSource;
+};
+
 struct asset_handle
 {
     u32 assetIndex;
@@ -122,6 +136,7 @@ struct asset_handle
     {
         texture_content texture;
         sound_content sound;
+        shader_content shader;
     };
 };
 

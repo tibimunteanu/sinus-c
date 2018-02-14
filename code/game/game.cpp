@@ -24,6 +24,7 @@ extern "C" void GameUpdateAndRender(memory_store *memory)
         tranState->isInitialized = true;
     }
 
+    LoadShader(tranState->assets, "basic.shader");
     LoadTexture(tranState->assets, "test2.png");
     LoadTexture(tranState->assets, "test3.png");
     LoadTexture(tranState->assets, "test2.png");
