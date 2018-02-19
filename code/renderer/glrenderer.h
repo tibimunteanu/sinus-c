@@ -1,29 +1,5 @@
-#ifndef OPENGL_H
-#define OPENGL_H
-
-#define WGL_DRAW_TO_WINDOW_ARB                       0x2001
-#define WGL_ACCELERATION_ARB                         0x2003
-#define WGL_SWAP_METHOD_ARB                          0x2007
-#define WGL_SUPPORT_OPENGL_ARB                       0x2010
-#define WGL_DOUBLE_BUFFER_ARB                        0x2011
-#define WGL_PIXEL_TYPE_ARB                           0x2013
-#define WGL_COLOR_BITS_ARB                           0x2014
-#define WGL_ALPHA_BITS_ARB                           0x201B
-#define WGL_DEPTH_BITS_ARB                           0x2022
-#define WGL_STENCIL_BITS_ARB                         0x2023
-#define WGL_SWAP_EXCHANGE_ARB                        0x2028
-#define WGL_TYPE_RGBA_ARB                            0x202B
-#define WGL_FULL_ACCELERATION_ARB                    0x2027
-#define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB             0x20A9
-#define WGL_CONTEXT_MAJOR_VERSION_ARB                0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB                0x2092
-#define WGL_CONTEXT_LAYER_PLANE_ARB                  0x2093
-#define WGL_CONTEXT_FLAGS_ARB                        0x2094
-#define WGL_CONTEXT_DEBUG_BIT_ARB                    0x0001
-#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB       0x0002
-#define WGL_CONTEXT_PROFILE_MASK_ARB                 0x9126
-#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB             0x00000001
-#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB    0x00000002
+#ifndef GLRENDERER_H
+#define GLRENDERER_H
 
 #define GL_NUM_EXTENSIONS                            0x821D
 #define GL_ARRAY_BUFFER                              0x8892
@@ -44,11 +20,6 @@
 #define GL_MINOR_VERSION                             0x821C
 #define GL_READ_ONLY                                 0x88B8
 #define GL_WRITE_ONLY                                0x88B9
-
-typedef HGLRC WINAPI wgl_create_context_attribs_arb(HDC hDC, HGLRC hShareContext, const int *attribList);
-typedef BOOL WINAPI wgl_choose_pixel_format_arb(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
-typedef const char * WINAPI wgl_get_extensions_string_ext(void);
-typedef BOOL WINAPI wgl_swap_interval_ext(int interval);
 
 typedef const GLubyte *gl_get_stringi(GLenum name, GLuint index);
 typedef void APIENTRY gl_attach_shader(GLuint program, GLuint shader);
@@ -86,11 +57,6 @@ typedef void APIENTRY gl_uniform_3fv(GLint location, GLsizei count, const GLfloa
 typedef void APIENTRY gl_uniform_4fv(GLint location, GLsizei count, const GLfloat *value);
 typedef void *APIENTRY gl_map_buffer (GLenum target, GLenum access);
 typedef GLboolean APIENTRY gl_unmap_buffer (GLenum target);
-
-global wgl_create_context_attribs_arb *wglCreateContextAttribsARB;
-global wgl_choose_pixel_format_arb *wglChoosePixelFormatARB;
-global wgl_get_extensions_string_ext *wglGetExtensionsStringEXT;
-global wgl_swap_interval_ext *wglSwapIntervalEXT;
 
 global gl_get_stringi *glGetStringi;
 global gl_attach_shader *glAttachShader;
@@ -135,11 +101,6 @@ struct gl_extensions
     b32 GL_framebuffer_sRGB;
 };
 
-struct wgl_extensions
-{
-    b32 WGL_framebuffer_sRGB;
-};
-
 struct gl_info
 {
     char *vendor;
@@ -150,4 +111,197 @@ struct gl_info
     i32 minorVersion;
 };
 
-#endif /* OPENGL_H */
+#define RENDERER_MAX_SPRITES 6000
+#define RENDERER_BUFFER_SIZE 4 * sizeof(vertex_data) * RENDERER_MAX_SPRITES
+#define RENDERER_INDICES_SIZE RENDERER_MAX_SPRITES * 6
+
+struct vertex_data
+{
+    vec3 position;
+    vec4 color;
+};
+
+struct renderer
+{
+    GLuint vao;
+    GLuint vbo;
+    GLuint ibo;
+    u32 indexCount;
+    vertex_data *buffer;
+};
+
+global char basicShaderVertexSource[] = 
+"#version 330 core\n"
+"layout(location = 0) in vec4 position;\n"
+"layout(location = 1) in vec4 color;\n"
+"out data\n"
+"{\n"
+    "vec4 position;\n"
+    "vec4 color;\n"
+"} vs_out;\n"
+"void main()\n"
+"{\n"
+    "gl_Position = position;\n"
+    "vs_out.position = position;\n"
+    "vs_out.color = color;\n"
+"};\n";
+
+global char basicShaderFragmentSource[] =
+"#version 330 core\n"
+"layout(location = 0) out vec4 color;\n"
+"in data\n"
+"{\n"
+    "vec4 position;\n"
+    "vec4 color;\n"
+"} fs_in;\n"
+"void main()\n"
+"{\n"
+    "color = fs_in.color;\n"
+"};\n";
+
+internal u32 CompileShader(u32 type, const char *source)
+{
+    u32 id = glCreateShader(type);
+    glShaderSource(id, 1, &source, 0);
+    glCompileShader(id);
+
+    i32 compileResult;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &compileResult);
+    if(compileResult == GL_FALSE)
+    {
+        i32 length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        char *message = (char *)alloca(length * sizeof(char));
+        glGetShaderInfoLog(id, length, &length, message);
+        OutputDebugStringA(message);
+        OutputDebugStringA("\n");
+        glDeleteShader(id);
+        id = 0;
+    }
+    return id;
+}
+
+internal u32 CreateShader(const char *vertexSource, const char *fragmentSource)
+{
+    u32 program = glCreateProgram();
+    u32 vs = CompileShader(GL_VERTEX_SHADER, vertexSource);
+    u32 fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSource);
+    if(!vs || !fs)
+    {
+        program = 0;
+    }
+    else
+    {
+        glAttachShader(program, vs);
+        glAttachShader(program, fs);
+        glLinkProgram(program);
+        glValidateProgram(program);
+
+        i32 linkResult;
+        glGetProgramiv(program, GL_LINK_STATUS, &linkResult);
+        if(linkResult == GL_FALSE)
+        {
+            i32 length;
+            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+            char *message = (char *)alloca(length * sizeof(char));
+            glGetProgramInfoLog(program, length, &length, message);
+            OutputDebugStringA(message);
+            OutputDebugStringA("\n");
+            program = 0;
+        }
+    }
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    return program;
+}
+
+internal void RendererInit(renderer *renderer)
+{
+    renderer->indexCount = 0;
+    GLuint indices[RENDERER_INDICES_SIZE];
+    for(GLuint i = 0, offset = 0; i < RENDERER_INDICES_SIZE; i += 6)
+    {
+        indices[i + 0] = offset + 0;
+        indices[i + 1] = offset + 1;
+        indices[i + 2] = offset + 2;
+        indices[i + 3] = offset + 2;
+        indices[i + 4] = offset + 3;
+        indices[i + 5] = offset + 0;
+        offset += 4;
+    }
+
+    glGenVertexArrays(1, &renderer->vao);
+    glGenBuffers(1, &renderer->vbo);
+    glBindVertexArray(renderer->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
+    glBufferData(GL_ARRAY_BUFFER, RENDERER_BUFFER_SIZE, 0, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_data), (const void *)0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(vertex_data), (const void *)(offsetof(vertex_data, color)));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glGenBuffers(1, &renderer->ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer->ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, RENDERER_INDICES_SIZE * sizeof(GLuint), &indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
+    glCullFace(GL_BACK);
+}
+
+internal void RendererBegin(renderer *renderer)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
+    renderer->buffer = (vertex_data *)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+}
+
+internal void RendererEnd()
+{
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+}
+
+internal void RendererSubmit(renderer *renderer, vec3 position, vec2 size, vec4 color)
+{
+    renderer->buffer->position = position;
+    renderer->buffer->color = color;
+    renderer->buffer++;
+
+    renderer->buffer->position = {position.x, position.y + size.y, position.z};
+    renderer->buffer->color = color;
+    renderer->buffer++;
+
+    renderer->buffer->position = {position.x + size.x, position.y + size.y, position.z};
+    renderer->buffer->color = color;
+    renderer->buffer++;
+
+    renderer->buffer->position = {position.x + size.x, position.y, position.z};
+    renderer->buffer->color = color;
+    renderer->buffer++;
+
+    renderer->indexCount += 6;
+}
+
+internal void RendererFlush(renderer *renderer)
+{
+    glBindVertexArray(renderer->vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer->ibo);
+    glDrawElements(GL_TRIANGLES, renderer->indexCount, GL_UNSIGNED_INT, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    renderer->indexCount = 0;
+}
+
+internal void RendererClearColor(vec4 color)
+{
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+internal void RendererSetViewport(u32 x, u32 y, i32 width, i32 height)
+{
+    glViewport(x, y, width, height);
+}
+
+#endif /* GLRENDERER_H */

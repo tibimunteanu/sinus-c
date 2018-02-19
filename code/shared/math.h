@@ -4,7 +4,7 @@
 #define PI32 3.14159265358979323846f
 #define TAU32 6.28318530717958647692f
 
-union v2
+union vec2
 {
     struct
     {
@@ -17,7 +17,7 @@ union v2
     r32 elements[2];
 };
 
-union v3
+union vec3
 {
     struct
     {
@@ -33,34 +33,34 @@ union v3
     };
     struct
     {
-        v2 xy;
+        vec2 xy;
         r32 _reserved0_;
     };
     struct
     {
         r32 _reserved1_;
-        v2 yz;
+        vec2 yz;
     };
     struct
     {
-        v2 uv;
+        vec2 uv;
         r32 _reserved2_;
     };
     struct
     {
         r32 _reserved3_;
-        v2 vw;
+        vec2 vw;
     };
     r32 elements[3];
 };
 
-union v4
+union vec4
 {
     struct
     {
         union
         {
-            v3 xyz;
+            vec3 xyz;
             struct
             {
                 r32 x, y, z;
@@ -72,7 +72,7 @@ union v4
     {
         union
         {
-            v3 rgb;
+            vec3 rgb;
             struct
             {
                 r32 r, g, b;
@@ -82,22 +82,22 @@ union v4
     };
     struct
     {
-        v2 xy, zw;
+        vec2 xy, zw;
     };
     struct
     {
         r32 _reserved2_;
-        v2 yz;
+        vec2 yz;
         r32 _reserved3_;
     };
     struct
     {
-        v2 rg, ba;
+        vec2 rg, ba;
     };
     struct
     {
         r32 _reserved8_;
-        v2 gb;
+        vec2 gb;
         r32 _reserved9_;
     };
     struct
@@ -110,7 +110,7 @@ union v4
     r32 elements[4];
 };
 
-union v2i
+union vec2i
 {
     struct
     {
@@ -119,7 +119,7 @@ union v2i
     i32 elements[2];
 };
 
-union v3i
+union vec3i
 {
     struct
     {
@@ -131,24 +131,24 @@ union v3i
     };
     struct
     {
-        v2i xy;
+        vec2i xy;
         i32 _reserved0_;
     };
     struct
     {
         i32 _reserved1_;
-        v2i yz;
+        vec2i yz;
     };
     i32 elements[3];
 };
 
-union v4i
+union vec4i
 {
     struct
     {
         union
         {
-            v3i xyz;
+            vec3i xyz;
             struct
             {
                 i32 x, y, z;
@@ -160,7 +160,7 @@ union v4i
     {
         union
         {
-            v3i rgb;
+            vec3i rgb;
             struct
             {
                 i32 r, g, b;
@@ -170,22 +170,22 @@ union v4i
     };
     struct
     {
-        v2i xy, zw;
+        vec2i xy, zw;
     };
     struct
     {
         i32 _reserved2_;
-        v2i yz;
+        vec2i yz;
         i32 _reserved3_;
     };
     struct
     {
-        v2i rg, ba;
+        vec2i rg, ba;
     };
     struct
     {
         i32 _reserved8_;
-        v2i gb;
+        vec2i gb;
         i32 _reserved9_;
     };
     struct
@@ -198,7 +198,12 @@ union v4i
     i32 elements[4];
 };
 
-union rect
+struct mat4
+{
+
+};
+
+union rect2
 {
     struct
     {
@@ -206,12 +211,12 @@ union rect
     };
     struct
     {
-        v2 min, max;
+        vec2 min, max;
     };
     r32 elements[4];
 };
 
-union recti
+union rect2i
 {
     struct
     {
@@ -219,7 +224,7 @@ union recti
     };
     struct
     {
-        v2i min, max;
+        vec2i min, max;
     };
     i32 elements[4];
 };
@@ -375,270 +380,270 @@ inline r32 clamp01Range(r32 value, r32 min, r32 max)
 }
 
 
-// v2 operators and functions
+// vec2 operators and functions
 
-inline v2 perp(v2 a)
+inline vec2 perp(vec2 a)
 {
-    v2 result = {-a.y, a.x};
+    vec2 result = {-a.y, a.x};
     return result;
 }
 
-inline v2 operator*(r32 a, v2 b)
+inline vec2 operator*(r32 a, vec2 b)
 {
-    v2 result = {a * b.x, a * b.y};
+    vec2 result = {a * b.x, a * b.y};
     return result;
 }
 
-inline v2 operator*(v2 a, r32 b)
+inline vec2 operator*(vec2 a, r32 b)
 {
-    v2 result = b * a;
+    vec2 result = b * a;
     return result;
 }
 
-inline v2 &operator*=(v2 &a, r32 b)
+inline vec2 &operator*=(vec2 &a, r32 b)
 {
     a = b * a;
     return a;
 }
 
-inline v2 operator-(v2 a)
+inline vec2 operator-(vec2 a)
 {
-    v2 result = {-a.x, -a.y};
+    vec2 result = {-a.x, -a.y};
     return result;
 }
 
-inline v2 operator+(v2 a, v2 b)
+inline vec2 operator+(vec2 a, vec2 b)
 {
-    v2 result = {a.x + b.x, a.y + b.y};
+    vec2 result = {a.x + b.x, a.y + b.y};
     return result;
 }
 
-inline v2 &operator+=(v2 &a, v2 b)
+inline vec2 &operator+=(vec2 &a, vec2 b)
 {
     a = a + b;
     return a;
 }
 
-inline v2 operator-(v2 a, v2 b)
+inline vec2 operator-(vec2 a, vec2 b)
 {
-    v2 result = {a.x - b.x, a.y - b.y};
+    vec2 result = {a.x - b.x, a.y - b.y};
     return result;
 }
 
-inline v2 hadamard(v2 a, v2 b)
+inline vec2 hadamard(vec2 a, vec2 b)
 {
-    v2 result = {a.x * b.x, a.y * b.y};
+    vec2 result = {a.x * b.x, a.y * b.y};
     return result;
 }
 
-inline r32 dot(v2 a, v2 b)
+inline r32 dot(vec2 a, vec2 b)
 {
     r32 result = a.x * b.x + a.y * b.y;
     return result;
 }
 
-inline r32 lengthSq(v2 a)
+inline r32 lengthSq(vec2 a)
 {
     r32 result = dot(a, a);
     return result;
 }
 
-inline r32 length(v2 a)
+inline r32 length(vec2 a)
 {
     r32 result = sqrt(lengthSq(a));
     return result;
 }
 
-inline v2 normalize(v2 a)
+inline vec2 normalize(vec2 a)
 {
-    v2 result = a * (1.0f / length(a));
+    vec2 result = a * (1.0f / length(a));
     return result;
 }
 
-inline v2 lerp(v2 a, v2 b, r32 t)
+inline vec2 lerp(vec2 a, vec2 b, r32 t)
 {
-    v2 result = (1.0f - t) * a + t * b;
+    vec2 result = (1.0f - t) * a + t * b;
     return result;
 }
 
 
-// v3 operators and functions
+// vec3 operators and functions
 
-inline v3 operator*(r32 a, v3 b)
+inline vec3 operator*(r32 a, vec3 b)
 {
-    v3 result = {a * b.x, a * b.y, a * b.z};
+    vec3 result = {a * b.x, a * b.y, a * b.z};
     return result;
 }
 
-inline v3 operator*(v3 a, r32 b)
+inline vec3 operator*(vec3 a, r32 b)
 {
-    v3 result = b * a;
+    vec3 result = b * a;
     return result;
 }
 
-inline v3 &operator*=(v3 &a, r32 b)
+inline vec3 &operator*=(vec3 &a, r32 b)
 {
     a = b * a;
     return a;
 }
 
-inline v3 operator-(v3 a)
+inline vec3 operator-(vec3 a)
 {
-    v3 result = {-a.x, -a.y, -a.z};
+    vec3 result = {-a.x, -a.y, -a.z};
     return result;
 }
 
-inline v3 operator+(v3 a, v3 b)
+inline vec3 operator+(vec3 a, vec3 b)
 {
-    v3 result = {a.x + b.x, a.y + b.y, a.z + b.z};
+    vec3 result = {a.x + b.x, a.y + b.y, a.z + b.z};
     return result;
 }
 
-inline v3 &operator+=(v3 &a, v3 b)
+inline vec3 &operator+=(vec3 &a, vec3 b)
 {
     a = a + b;
     return a;
 }
 
-inline v3 operator-(v3 a, v3 b)
+inline vec3 operator-(vec3 a, vec3 b)
 {
-    v3 result = {a.x - b.x, a.y - b.y, a.z - b.z};
+    vec3 result = {a.x - b.x, a.y - b.y, a.z - b.z};
     return result;
 }
 
-inline v3 hadamard(v3 a, v3 b)
+inline vec3 hadamard(vec3 a, vec3 b)
 {
-    v3 result = {a.x * b.x, a.y * b.y, a.z * b.z};
+    vec3 result = {a.x * b.x, a.y * b.y, a.z * b.z};
     return result;
 }
 
-inline r32 dot(v3 a, v3 b)
+inline r32 dot(vec3 a, vec3 b)
 {
     r32 result = a.x * b.x + a.y * b.y + a.z * b.z;
     return result;
 }
 
-inline v3 cross(v3 a, v3 b)
+inline vec3 cross(vec3 a, vec3 b)
 {
-    v3 result = {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
+    vec3 result = {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
     return result;
 }
 
-inline r32 lengthSq(v3 a)
+inline r32 lengthSq(vec3 a)
 {
     r32 result = dot(a, a);
     return result;
 }
 
-inline r32 length(v3 a)
+inline r32 length(vec3 a)
 {
     r32 result = sqrt(lengthSq(a));
     return result;
 }
 
-inline v3 normalize(v3 a)
+inline vec3 normalize(vec3 a)
 {
-    v3 result = a * (1.0f / length(a));
+    vec3 result = a * (1.0f / length(a));
     return result;
 }
 
-inline v3 lerp(v3 a, v3 b, r32 t)
+inline vec3 lerp(vec3 a, vec3 b, r32 t)
 {
-    v3 result = (1.0f - t) * a + t * b;
+    vec3 result = (1.0f - t) * a + t * b;
     return result;
 }
 
 
-// v4 operators and functions
+// vec4 operators and functions
 
-inline v4 operator*(r32 a, v4 b)
+inline vec4 operator*(r32 a, vec4 b)
 {
-    v4 result = {a * b.x, a * b.y, a * b.z, a * b.w};
+    vec4 result = {a * b.x, a * b.y, a * b.z, a * b.w};
     return result;
 }
 
-inline v4 operator*(v4 a, r32 b)
+inline vec4 operator*(vec4 a, r32 b)
 {
-    v4 result = b * a;
+    vec4 result = b * a;
     return result;
 }
 
-inline v4 &operator*=(v4 &a, r32 b)
+inline vec4 &operator*=(vec4 &a, r32 b)
 {
     a = b * a;
     return a;
 }
 
-inline v4 operator-(v4 a)
+inline vec4 operator-(vec4 a)
 {
-    v4 result = {-a.x, -a.y, -a.z, -a.w};
+    vec4 result = {-a.x, -a.y, -a.z, -a.w};
     return result;
 }
 
-inline v4 operator+(v4 a, v4 b)
+inline vec4 operator+(vec4 a, vec4 b)
 {
-    v4 result = {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
+    vec4 result = {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
     return result;
 }
 
-inline v4 &operator+=(v4 &a, v4 b)
+inline vec4 &operator+=(vec4 &a, vec4 b)
 {
     a = a + b;
     return a;
 }
 
-inline v4 operator-(v4 a, v4 b)
+inline vec4 operator-(vec4 a, vec4 b)
 {
-    v4 result = {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
+    vec4 result = {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
     return result;
 }
 
-inline v4 hadamard(v4 a, v4 b)
+inline vec4 hadamard(vec4 a, vec4 b)
 {
-    v4 result = {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
+    vec4 result = {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
     return result;
 }
 
-inline r32 dot(v4 a, v4 b)
+inline r32 dot(vec4 a, vec4 b)
 {
     r32 result = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     return result;
 }
 
-inline r32 lengthSq(v4 a)
+inline r32 lengthSq(vec4 a)
 {
     r32 result = dot(a, a);
     return result;
 }
 
-inline r32 length(v4 a)
+inline r32 length(vec4 a)
 {
     r32 result = sqrt(lengthSq(a));
     return result;
 }
 
-inline v4 normalize(v4 a)
+inline vec4 normalize(vec4 a)
 {
-    v4 result = a * (1.0f / length(a));
+    vec4 result = a * (1.0f / length(a));
     return result;
 }
 
-inline v4 lerp(v4 a, v4 b, r32 t)
+inline vec4 lerp(vec4 a, vec4 b, r32 t)
 {
-    v4 result = (1.0f - t) * a + t * b;
+    vec4 result = (1.0f - t) * a + t * b;
     return result;
 }
 
 
-// rect functions
+// rect2 functions
 
-inline v2 center(rect rect)
+inline vec2 center(rect2 rect)
 {
-    v2 result = 0.5f * (rect.min + rect.max);
+    vec2 result = 0.5f * (rect.min + rect.max);
     return result;
 }
 
-inline b32 isInRectangle(rect rect, v2 point)
+inline b32 isInRectangle(rect2 rect, vec2 point)
 {
     b32 result = (point.x >= rect.min.x)
         && (point.y >= rect.min.y)
@@ -647,7 +652,7 @@ inline b32 isInRectangle(rect rect, v2 point)
     return result;
 }
 
-inline b32 intersect(rect a, rect b)
+inline b32 intersect(rect2 a, rect2 b)
 {
     b32 result = !((b.max.x <= a.min.x)
             || (b.min.x >= a.max.x)
@@ -657,236 +662,236 @@ inline b32 intersect(rect a, rect b)
 }
 
 
-// v2i operators and functions
+// vec2i operators and functions
 
-inline v2i perp(v2i a)
+inline vec2i perp(vec2i a)
 {
-    v2i result = {-a.y, a.x};
+    vec2i result = {-a.y, a.x};
     return result;
 }
 
-inline v2i operator*(i32 a, v2i b)
+inline vec2i operator*(i32 a, vec2i b)
 {
-    v2i result = {a * b.x, a * b.y};
+    vec2i result = {a * b.x, a * b.y};
     return result;
 }
 
-inline v2i operator*(v2i a, i32 b)
+inline vec2i operator*(vec2i a, i32 b)
 {
-    v2i result = b * a;
+    vec2i result = b * a;
     return result;
 }
 
-inline v2i &operator*=(v2i &a, i32 b)
+inline vec2i &operator*=(vec2i &a, i32 b)
 {
     a = b * a;
     return a;
 }
 
-inline v2i operator-(v2i a)
+inline vec2i operator-(vec2i a)
 {
-    v2i result = {-a.x, -a.y};
+    vec2i result = {-a.x, -a.y};
     return result;
 }
 
-inline v2i operator+(v2i a, v2i b)
+inline vec2i operator+(vec2i a, vec2i b)
 {
-    v2i result = {a.x + b.x, a.y + b.y};
+    vec2i result = {a.x + b.x, a.y + b.y};
     return result;
 }
 
-inline v2i &operator+=(v2i &a, v2i b)
+inline vec2i &operator+=(vec2i &a, vec2i b)
 {
     a = a + b;
     return a;
 }
 
-inline v2i operator-(v2i a, v2i b)
+inline vec2i operator-(vec2i a, vec2i b)
 {
-    v2i result = {a.x - b.x, a.y - b.y};
+    vec2i result = {a.x - b.x, a.y - b.y};
     return result;
 }
 
-inline v2i hadamard(v2i a, v2i b)
+inline vec2i hadamard(vec2i a, vec2i b)
 {
-    v2i result = {a.x * b.x, a.y * b.y};
+    vec2i result = {a.x * b.x, a.y * b.y};
     return result;
 }
 
-inline r32 dot(v2i a, v2i b)
+inline r32 dot(vec2i a, vec2i b)
 {
     r32 result = (r32)(a.x * b.x + a.y * b.y);
     return result;
 }
 
-inline r32 lengthSq(v2i a)
+inline r32 lengthSq(vec2i a)
 {
     r32 result = dot(a, a);
     return result;
 }
 
-inline r32 length(v2i a)
+inline r32 length(vec2i a)
 {
     r32 result = sqrt(lengthSq(a));
     return result;
 }
 
 
-// v3i operators and functions
+// vec3i operators and functions
 
-inline v3i operator*(i32 a, v3i b)
+inline vec3i operator*(i32 a, vec3i b)
 {
-    v3i result = {a * b.x, a * b.y, a * b.z};
+    vec3i result = {a * b.x, a * b.y, a * b.z};
     return result;
 }
 
-inline v3i operator*(v3i a, i32 b)
+inline vec3i operator*(vec3i a, i32 b)
 {
-    v3i result = b * a;
+    vec3i result = b * a;
     return result;
 }
 
-inline v3i &operator*=(v3i &a, i32 b)
+inline vec3i &operator*=(vec3i &a, i32 b)
 {
     a = b * a;
     return a;
 }
 
-inline v3i operator-(v3i a)
+inline vec3i operator-(vec3i a)
 {
-    v3i result = {-a.x, -a.y, -a.z};
+    vec3i result = {-a.x, -a.y, -a.z};
     return result;
 }
 
-inline v3i operator+(v3i a, v3i b)
+inline vec3i operator+(vec3i a, vec3i b)
 {
-    v3i result = {a.x + b.x, a.y + b.y, a.z + b.z};
+    vec3i result = {a.x + b.x, a.y + b.y, a.z + b.z};
     return result;
 }
 
-inline v3i &operator+=(v3i &a, v3i b)
+inline vec3i &operator+=(vec3i &a, vec3i b)
 {
     a = a + b;
     return a;
 }
 
-inline v3i operator-(v3i a, v3i b)
+inline vec3i operator-(vec3i a, vec3i b)
 {
-    v3i result = {a.x - b.x, a.y - b.y, a.z - b.z};
+    vec3i result = {a.x - b.x, a.y - b.y, a.z - b.z};
     return result;
 }
 
-inline v3i hadamard(v3i a, v3i b)
+inline vec3i hadamard(vec3i a, vec3i b)
 {
-    v3i result = {a.x * b.x, a.y * b.y, a.z * b.z};
+    vec3i result = {a.x * b.x, a.y * b.y, a.z * b.z};
     return result;
 }
 
-inline r32 dot(v3i a, v3i b)
+inline r32 dot(vec3i a, vec3i b)
 {
     r32 result = (r32)(a.x * b.x + a.y * b.y + a.z * b.z);
     return result;
 }
 
-inline v3i cross(v3i a, v3i b)
+inline vec3i cross(vec3i a, vec3i b)
 {
-    v3i result = {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
+    vec3i result = {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
     return result;
 }
 
-inline r32 lengthSq(v3i a)
+inline r32 lengthSq(vec3i a)
 {
     r32 result = dot(a, a);
     return result;
 }
 
-inline r32 length(v3i a)
+inline r32 length(vec3i a)
 {
     r32 result = sqrt(lengthSq(a));
     return result;
 }
 
 
-// v4i operators and functions
+// vec4i operators and functions
 
-inline v4i operator*(i32 a, v4i b)
+inline vec4i operator*(i32 a, vec4i b)
 {
-    v4i result = {a * b.x, a * b.y, a * b.z, a * b.w};
+    vec4i result = {a * b.x, a * b.y, a * b.z, a * b.w};
     return result;
 }
 
-inline v4i operator*(v4i a, i32 b)
+inline vec4i operator*(vec4i a, i32 b)
 {
-    v4i result = b * a;
+    vec4i result = b * a;
     return result;
 }
 
-inline v4i &operator*=(v4i &a, i32 b)
+inline vec4i &operator*=(vec4i &a, i32 b)
 {
     a = b * a;
     return a;
 }
 
-inline v4i operator-(v4i a)
+inline vec4i operator-(vec4i a)
 {
-    v4i result = {-a.x, -a.y, -a.z, -a.w};
+    vec4i result = {-a.x, -a.y, -a.z, -a.w};
     return result;
 }
 
-inline v4i operator+(v4i a, v4i b)
+inline vec4i operator+(vec4i a, vec4i b)
 {
-    v4i result = {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
+    vec4i result = {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
     return result;
 }
 
-inline v4i &operator+=(v4i &a, v4i b)
+inline vec4i &operator+=(vec4i &a, vec4i b)
 {
     a = a + b;
     return a;
 }
 
-inline v4i operator-(v4i a, v4i b)
+inline vec4i operator-(vec4i a, vec4i b)
 {
-    v4i result = {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
+    vec4i result = {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
     return result;
 }
 
-inline v4i hadamard(v4i a, v4i b)
+inline vec4i hadamard(vec4i a, vec4i b)
 {
-    v4i result = {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
+    vec4i result = {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
     return result;
 }
 
-inline r32 dot(v4i a, v4i b)
+inline r32 dot(vec4i a, vec4i b)
 {
     r32 result = (r32)(a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w);
     return result;
 }
 
-inline r32 lengthSq(v4i a)
+inline r32 lengthSq(vec4i a)
 {
     r32 result = dot(a, a);
     return result;
 }
 
-inline r32 length(v4i a)
+inline r32 length(vec4i a)
 {
     r32 result = sqrt(lengthSq(a));
     return result;
 }
 
 
-// recti functions
+// rect2i functions
 
-inline v2 center(recti rect)
+inline vec2 center(rect2i rect)
 {
-    v2 min = {(r32)rect.min.x, (r32)rect.min.y};
-    v2 max = {(r32)rect.max.x, (r32)rect.max.y};
-    v2 result = 0.5f * (min + max);
+    vec2 min = {(r32)rect.min.x, (r32)rect.min.y};
+    vec2 max = {(r32)rect.max.x, (r32)rect.max.y};
+    vec2 result = 0.5f * (min + max);
     return result;
 }
 
-inline b32 isInRectangle(recti rect, v2i point)
+inline b32 isInRectangle(rect2i rect, vec2i point)
 {
     b32 result = (point.x >= rect.min.x)
         && (point.y >= rect.min.y)
@@ -895,7 +900,7 @@ inline b32 isInRectangle(recti rect, v2i point)
     return result;
 }
 
-inline b32 intersect(recti a, recti b)
+inline b32 intersect(rect2i a, rect2i b)
 {
     b32 result = !((b.max.x <= a.min.x)
             || (b.min.x >= a.max.x)

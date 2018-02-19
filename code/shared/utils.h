@@ -194,4 +194,10 @@ inline const char *SkipTo(const char *source, const char *target)
     return strstr(source, target);
 }
 
+inline b32 IsPowerOfTwo(u32 value)
+{
+    b32 result = value != 0 && !(value & (value - 1));
+    return result;
+}
+
 #endif /* UTILS_H */

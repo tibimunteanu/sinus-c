@@ -13,6 +13,8 @@
 #include "fileio.h"
 #include "monitor.h"
 #include "input.h"
+#include "../../renderer/glrenderer.h"
+#include "glcontext.h"
 
 struct win32_state
 {
@@ -48,9 +50,7 @@ struct win32_game_dll
 };
 
 #include "monitor.cpp"
-#include "opengl.cpp"
 #include "input.cpp"
-#include "renderer.h"
 
 global b32 running;
 win32_state win32State = {};

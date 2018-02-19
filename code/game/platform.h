@@ -147,6 +147,11 @@ struct memory_store
     platform_api platform;
 };
 
+struct render_commands
+{
+
+};
+
 inline void BeginTicketMutex(ticket_mutex *mutex)
 {
     u64 ticket = AtomicAddU64(&mutex->ticket, 1);

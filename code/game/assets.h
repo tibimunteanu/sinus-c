@@ -68,9 +68,9 @@ struct sprite_meta
 #define MAX_ASSET_NAME_LENGTH 64
     u32 index;
     char name[MAX_ASSET_NAME_LENGTH];
-    recti rect;
-    v2 pivot;
-    v4 border;
+    rect2i rect;
+    vec2 pivot;
+    vec4 border;
 };
 
 struct sound_meta
@@ -147,7 +147,7 @@ struct asset_lru
     u32 assetIndex;
 };
 
-struct game_assets
+struct asset_manager
 {
     memory_arena *arena;
     general_allocator assetsAllocator;

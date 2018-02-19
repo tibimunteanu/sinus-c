@@ -161,7 +161,7 @@ inline b32 ReadStringProp(FILE *file, char *propName, char *value)
     return result;
 }
 
-inline b32 ReadRectiProp(FILE *file, char *propName, recti *value)
+inline b32 ReadRect2iProp(FILE *file, char *propName, rect2i *value)
 {
     b32 result = false;
     if(ReadRequiredHeader(file, propName)
@@ -179,7 +179,7 @@ inline b32 ReadRectiProp(FILE *file, char *propName, recti *value)
     return result;
 }
 
-inline b32 ReadV2Prop(FILE *file, char *propName, v2 *value)
+inline b32 ReadV2Prop(FILE *file, char *propName, vec2 *value)
 {
     b32 result = false;
     if(ReadRequiredHeader(file, propName)
@@ -195,7 +195,7 @@ inline b32 ReadV2Prop(FILE *file, char *propName, v2 *value)
     return result;
 }
 
-inline b32 ReadV4Prop(FILE *file, char *propName, v4 *value)
+inline b32 ReadV4Prop(FILE *file, char *propName, vec4 *value)
 {
     b32 result = false;
     if(ReadRequiredHeader(file, propName)
@@ -217,7 +217,7 @@ inline b32 ReadSprite(FILE *file, sprite_meta *sprite)
 {
     return ReadU32Prop(file, "index", &sprite->index)
         && ReadStringProp(file, "name", sprite->name)
-        && ReadRectiProp(file, "rect:", &sprite->rect)
+        && ReadRect2iProp(file, "rect:", &sprite->rect)
         && ReadV2Prop(file, "pivot:", &sprite->pivot)
         && ReadV4Prop(file, "border:", &sprite->border);
 }

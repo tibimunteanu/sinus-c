@@ -1,6 +1,6 @@
 #include "assets.h"
 
-internal void AssetLruInsertAtFront(game_assets *assets, asset_lru *assetLru)
+internal void AssetLruInsertAtFront(asset_manager *assets, asset_lru *assetLru)
 {
     asset_lru *sentinel = assets->assetLruSentinel;
     assetLru->prev = sentinel;
@@ -16,13 +16,13 @@ internal void AssetLruRemove(asset_lru *assetLru)
     assetLru->prev = assetLru->next = 0;
 }
 
-internal void AssetLruMoveToFront(game_assets *assets, asset_lru *assetLru)
+internal void AssetLruMoveToFront(asset_manager *assets, asset_lru *assetLru)
 {
     AssetLruRemove(assetLru);
     AssetLruInsertAtFront(assets, assetLru);
 }
 
-internal void *AllocateAssetMemory(game_assets *assets, u32 size, u32 newAssetIndex, asset_types assetType)
+internal void *AllocateAssetMemory(asset_manager *assets, u32 size, u32 newAssetIndex, asset_types assetType)
 {
     void *result = GAAllocate(&assets->assetsAllocator, size);
     while(!result)
@@ -73,7 +73,7 @@ internal void *AllocateAssetMemory(game_assets *assets, u32 size, u32 newAssetIn
     return result;
 }
 
-internal asset_handle *GetAsset(game_assets *assets, char *fileName)
+internal asset_handle *GetAsset(asset_manager *assets, char *fileName)
 {
     asset_handle *result = 0;
     for(u32 assetIndex = 0; assetIndex < assets->assetCount; assetIndex++)
@@ -88,7 +88,7 @@ internal asset_handle *GetAsset(game_assets *assets, char *fileName)
     return result;
 }
 
-internal void LoadTexture(game_assets *assets, u32 assetIndex)
+internal void LoadTexture(asset_manager *assets, u32 assetIndex)
 {
     asset_handle *asset = assets->assets + assetIndex;
     if(asset->state == AssetState_Unloaded)
@@ -106,7 +106,7 @@ internal void LoadTexture(game_assets *assets, u32 assetIndex)
     }
 }
 
-internal void LoadTexture(game_assets *assets, char* fileName)
+internal void LoadTexture(asset_manager *assets, char* fileName)
 {
     asset_handle *asset = GetAsset(assets, fileName);
     if(asset)
@@ -115,12 +115,12 @@ internal void LoadTexture(game_assets *assets, char* fileName)
     }
 }
 
-internal void LoadSound(game_assets *assets, u32 assetIndex)
+internal void LoadSound(asset_manager *assets, u32 assetIndex)
 {
 
 }
 
-internal void LoadSound(game_assets *assets, char *fileName)
+internal void LoadSound(asset_manager *assets, char *fileName)
 {
     asset_handle *asset = GetAsset(assets, fileName);
     if(asset)
@@ -129,7 +129,7 @@ internal void LoadSound(game_assets *assets, char *fileName)
     }
 }
 
-internal void LoadShader(game_assets *assets, u32 assetIndex)
+internal void LoadShader(asset_manager *assets, u32 assetIndex)
 {
     asset_handle *asset = assets->assets + assetIndex;
     if(asset->state == AssetState_Unloaded)
@@ -147,7 +147,7 @@ internal void LoadShader(game_assets *assets, u32 assetIndex)
     }
 }
 
-internal void LoadShader(game_assets *assets, char *fileName)
+internal void LoadShader(asset_manager *assets, char *fileName)
 {
     asset_handle *asset = GetAsset(assets, fileName);
     if(asset)
@@ -156,9 +156,9 @@ internal void LoadShader(game_assets *assets, char *fileName)
     }
 }
 
-internal game_assets *AllocateGameAssets(memory_arena *arena, u32 size)
+internal asset_manager *AssetManagerInit(memory_arena *arena, u32 size)
 {
-    game_assets *assets = PushStruct(arena, game_assets);
+    asset_manager *assets = PushStruct(arena, asset_manager);
     GAInit(arena, &assets->assetsAllocator, size, 4096); //TODO: set this based on smallest asset?
     assets->arena = arena;
     assets->assetLruSentinel = PushStruct(arena, asset_lru);

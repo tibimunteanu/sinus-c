@@ -7,18 +7,20 @@
 #include "../shared/math.h"
 #include "platform.h"
 #include "assets.h"
+#include "entities.h"
 
 struct game_state
 {
     b32 isInitialized;
     memory_arena arena;
+    entity_manager *entityManager;
 };
 
 struct tran_state
 {
     b32 isInitialized;
     memory_arena arena;
-    game_assets *assets;
+    asset_manager *assetManager;
 };
 
 #endif /* GAME_H */
